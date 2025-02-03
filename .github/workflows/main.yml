@@ -1,4 +1,4 @@
-name: vprofile actions
+name: vprofile actions 1
 on: workflow_dispatch
 
 env:
@@ -26,14 +26,23 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      # Debug Environment Variables
+      - name: Debug Environment Variables
+        run: |
+          echo "SONAR_PROJECT_KEY=${{ secrets.SONAR_PROJECT_KEY }}"
+          echo "SONAR_ORGANIZATION=${{ secrets.SONAR_ORGANIZATION }}"
+          echo "SONAR_URL=${{ secrets.SONAR_URL }}"
+          echo "Checking SONAR_TOKEN length..."
+          echo "${{ secrets.SONAR_TOKEN }}" | wc -c
+
       # Setup SonarScanner
       - name: Setup SonarQube
         uses: warchant/setup-sonar-scanner@v7
 
-      # Run SonarQube Scanner
+      # Run SonarQube Scanner with Debug (-X)
       - name: SonarQube Scan
         run: |
-          sonar-scanner \
+          sonar-scanner -X \
             -Dsonar.host.url=${{ secrets.SONAR_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
             -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }} \
@@ -44,12 +53,14 @@ jobs:
             -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
             -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/
 
-      - name: Debug Environment Variables
-        run: |
-            echo "SONAR_PROJECT_KEY=${{ secrets.SONAR_PROJECT_KEY }}"
-            echo "SONAR_ORGANIZATION=${{ secrets.SONAR_ORGANIZATION }}"
-
-
+      # Check the Quality Gate status
+      - name: SonarQube Quality Gate check
+        id: sonarqube-quality-gate-check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_URL }}
 
       # Check the Quality Gate status.
       - name: SonarQube Quality Gate check
