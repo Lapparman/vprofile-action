@@ -44,6 +44,12 @@ jobs:
             -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml \
             -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/
 
+      - name: Debug Environment Variables
+        run: |
+            echo "SONAR_PROJECT_KEY=${{ secrets.SONAR_PROJECT_KEY }}"
+            echo "SONAR_ORGANIZATION=${{ secrets.SONAR_ORGANIZATION }}"
+
+
 
       # Check the Quality Gate status.
       - name: SonarQube Quality Gate check
